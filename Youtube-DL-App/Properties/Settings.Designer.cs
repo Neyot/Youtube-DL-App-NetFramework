@@ -25,7 +25,7 @@ namespace Youtube_DL_App.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("..\\test downloads")]
+        [global::System.Configuration.DefaultSettingValueAttribute("..\\..\\..\\..\\test downloads")]
         public string OutputFolder {
             get {
                 return ((string)(this["OutputFolder"]));
@@ -37,7 +37,7 @@ namespace Youtube_DL_App.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("..\\Binaries")]
+        [global::System.Configuration.DefaultSettingValueAttribute("..\\..\\..\\..\\Binaries")]
         public string Binaries {
             get {
                 return ((string)(this["Binaries"]));

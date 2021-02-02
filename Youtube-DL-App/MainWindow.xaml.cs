@@ -21,9 +21,15 @@ namespace Youtube_DL_App {
     public partial class MainWindow : Window {
         public DownloadProgressBarValue DownloadProgressValue { get; set; }
 
+        private string outputFolder;
+
         public MainWindow() {
             InitializeComponent();
-            OutputFolderTextBox.Text = Properties.Settings.Default["OutputFolder"].ToString();
+            outputFolder = Properties.Settings.Default["OutputFolder"].ToString();
+            if (!System.IO.Path.IsPathRooted(outputFolder)) {
+                outputFolder = System.IO.Path.GetFullPath(System.IO.Directory.GetCurrentDirectory() + outputFolder);
+            }
+            OutputFolderTextBox.Text = outputFolder;
 
             Binding binding = new Binding("Data");
             binding.Source = DownloadProgressValue;
