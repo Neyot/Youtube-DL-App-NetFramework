@@ -1,0 +1,45 @@
+﻿<Window x:Class="Youtube_DL_App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Youtube_DL_App"
+        mc:Ignorable="d"
+        Title="Youtube-DL Easy Wrapper" Height="185" Width="750" MinHeight="185" MinWidth="750"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <Window.Resources>
+        <LinearGradientBrush x:Key="WindowBackgroundBrush">
+            <GradientStop Offset="-2" Color="Red"/>
+            <GradientStop Offset="1" Color="White"/>
+        </LinearGradientBrush>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Padding" Value="15,5"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid Margin="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Label x:Name="YoutubeUrlLabel" Content="_Youtube URL to MP3:" Target="{Binding ElementName=YoutubeUrlTextBox}"/>
+            <TextBox Grid.Column="1" x:Name="YoutubeUrlTextBox" Margin="5,0,5,15" TabIndex="1" TextWrapping="Wrap" Text=""/>
+            <Button Grid.Column="2" x:Name="YoutubeUrlButton" Margin="5,0,5,15" Content="Download" Click="YoutubeUrlButton_Click"/>
+
+            <Label Grid.Row="1" x:Name="OutputFolderLabel" Content="_Output Folder:" Target="{Binding ElementName=OutputFolderTextBox}"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="OutputFolderTextBox" Margin="5,0,5,15" TabIndex="2" TextWrapping="Wrap" Text=""/>
+            <Button Grid.Row="1" Grid.Column="2" x:Name="OutputFolderButton" Margin="5,0,5,15" Content="Confirm" Click="OutputFolderButton_Click"/>
+
+            <ProgressBar Grid.Row="2" Grid.ColumnSpan="3" Minimum="0" Maximum="1000" Name="downloadProgressBar" VerticalAlignment="Bottom" Height="20" Visibility="Hidden"/>
+        </Grid>
+
+    </Grid>
+</Window>
+    
