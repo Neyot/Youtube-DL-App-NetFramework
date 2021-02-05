@@ -37,7 +37,8 @@
             <TextBox Grid.Row="1" Grid.Column="1" x:Name="OutputFolderTextBox" Margin="5,0,5,15" TabIndex="2" TextWrapping="Wrap" Text=""/>
             <Button Grid.Row="1" Grid.Column="2" x:Name="OutputFolderButton" Margin="5,0,5,15" Content="Confirm" Click="OutputFolderButton_Click"/>
 
-            <ProgressBar Grid.Row="2" Grid.ColumnSpan="3" Minimum="0" Maximum="1000" Name="downloadProgressBar" VerticalAlignment="Bottom" Height="20" Visibility="Hidden"/>
+            <ProgressBar Grid.Row="2" Grid.ColumnSpan="3" Minimum="0" Maximum="100" Name="downloadProgressBar" VerticalAlignment="Bottom" Height="20" Visibility="Hidden"/>
+            <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Name="downloadProgressBarText" HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="" Height="18" Visibility="Hidden"/>
         </Grid>
 
     </Grid>

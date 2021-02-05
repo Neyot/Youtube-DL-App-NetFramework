@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -41,15 +41,21 @@ namespace Youtube_DL_App {
             Properties.Settings.Default.Save();
         }
 
-        public void audioDl_DownloadProgress(object sender, DownloadProgressEventArgs e) {
-            downloadProgressBar.Value = e.Data;
+        public void AudioDL_DownloadProgress(object sender, DownloadProgressEventArgs e) {
+            this.Dispatcher.Invoke(() => {
+                downloadProgressBar.Value = e.Progress;
+                downloadProgressBarText.Text = e.ProgressText;
+            });
         }
 
         private void YoutubeUrlButton_Click(object sender, RoutedEventArgs e) {
             downloadProgressBar.Visibility = Visibility.Visible;
-            AudioDownloader audioDl = new AudioDownloader("https://www.youtube.com/watch?v=dvgZkm1xWPE", @"..\test downloads");
-            audioDl.DownloadProgress += audioDl_DownloadProgress;
-            audioDl.StartDownload();
+            downloadProgressBarText.Visibility = Visibility.Visible;
+            AudioDownloader AudioDL = new AudioDownloader("https://www.youtube.com/watch?v=dvgZkm1xWPE", @"..\test downloads");
+            AudioDL.DownloadProgress += AudioDL_DownloadProgress;
+            ThreadStart ths = new ThreadStart(() => AudioDL.StartDownload());
+            Thread th = new Thread(ths);
+            th.Start();
         }
     }
 

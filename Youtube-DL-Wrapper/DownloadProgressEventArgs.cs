@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 
 namespace Youtube_DL_Wrapper {
     public class DownloadProgressEventArgs : EventArgs {
-        private readonly double data;
-        public double Data { get => data; }
+        private readonly double progress;
+        private readonly string progressText;
 
-        public DownloadProgressEventArgs(double progress) {
-            data = progress;
+        public double Progress { get => progress; }
+        public string ProgressText { get => progressText; }
+
+        public DownloadProgressEventArgs(double progressIn, string progressTextIn) {
+            progress = progressIn;
+            progressText = progressTextIn;
         }
     }
 }
