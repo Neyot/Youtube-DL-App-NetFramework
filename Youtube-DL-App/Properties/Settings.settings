@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="OutputFolder" Type="System.String" Scope="User">
-      <Value Profile="(Default)">..\..\..\..\test downloads</Value>
+      <Value Profile="(Default)">youtubeDlAppDownloads</Value>
     </Setting>
-    <Setting Name="Binaries" Type="System.String" Scope="User">
-      <Value Profile="(Default)">..\..\..\..\Binaries</Value>
+    <Setting Name="YoutubeUrl" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://www.youtube.com/watch?v=dQw4w9WgXcQ</Value>
     </Setting>
   </Settings>
 </SettingsFile>

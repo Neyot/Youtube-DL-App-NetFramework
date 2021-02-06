@@ -19,7 +19,6 @@ namespace Youtube_DL_App {
     public partial class ConsoleLogWindow : Window {
         public ConsoleLogWindow() {
             InitializeComponent();
-
         }
     }
 }

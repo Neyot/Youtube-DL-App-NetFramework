@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="ConsoleLogWindow" Height="373.048" Width="825.929">
     <Grid>
-        <TextBox Name="ConsoleLog" Margin="10" />
+        <TextBox Name="ConsoleLog" IsReadOnly="True" IsReadOnlyCaretVisible="True" Margin="10" />
     </Grid>
 </Window>
