@@ -11,14 +11,13 @@ namespace Youtube_DL_Wrapper {
 
         public delegate void DownloadProgressEventHandler(object sender, DownloadProgressEventArgs e);
         public event DownloadProgressEventHandler DownloadProgress;
+        public delegate void ConsoleLogEventHandler(object sender, ConsoleLogEventArgs e);
+        public event ConsoleLogEventHandler ConsoleLog;
 
-        //private readonly string binaryFolder = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), @"../Binaries");
         private readonly Process process;
-        private double dlPercentage = 0.0;
-        private int lineCount = 0;
 
         public AudioDownloader(string url, string outputFolder, string outputName) {
-            string binaryFolder = System.IO.Path.GetFullPath(System.IO.Directory.GetCurrentDirectory() + @"../../../../Binaries");
+            string binaryFolder = System.IO.Path.GetFullPath(System.IO.Directory.GetCurrentDirectory() + "/Binaries");
             string destinationPath = System.IO.Path.Combine(outputFolder, outputName);
 
             string arguments = $"--continue  --no-overwrites --restrict-filenames --extract-audio --audio-format mp3 {url} -o \"{destinationPath}\"";
@@ -47,6 +46,7 @@ namespace Youtube_DL_Wrapper {
 
         private void OutputHandler(object sender, DataReceivedEventArgs e) {
             if (!String.IsNullOrEmpty(e.Data)) {
+                ConsoleLog?.Invoke(this, new ConsoleLogEventArgs(e.Data));
                 if (e.Data.StartsWith("[download]")) {
                     Regex pattern = new Regex(@"(\d+[.,]\d{1,2}|\d+)(?=\s*%)", RegexOptions.None);
                     if (pattern.IsMatch(e.Data)) {
