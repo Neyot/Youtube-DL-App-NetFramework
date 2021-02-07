@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
+using System.Diagnostics;
 using Youtube_DL_Wrapper;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 using DialogResult = System.Windows.Forms.DialogResult;
@@ -27,9 +28,10 @@ namespace Youtube_DL_App {
         private string outputFolder;
         private string youtubeUrl;
 
-        public MainWindow() {
+        public MainWindow(bool showConsoleLog) {
             InitializeComponent();
-            consoleLogWindow.Show();
+            if (showConsoleLog)
+                consoleLogWindow.Show();
 
             outputFolder = Properties.Settings.Default["OutputFolder"].ToString();
             if (!System.IO.Path.IsPathRooted(outputFolder)) {
@@ -44,6 +46,8 @@ namespace Youtube_DL_App {
             DownloadProgressBar.SetBinding(ProgressBar.ValueProperty, binding);
         }
 
+        public MainWindow() : this(false) { }
+
         protected override void OnMouseDown(MouseButtonEventArgs e) {
             base.OnMouseDown(e);
             Keyboard.ClearFocus();
@@ -52,6 +56,15 @@ namespace Youtube_DL_App {
         protected override void OnClosed(EventArgs e) {
             base.OnClosed(e);
             Application.Current.Shutdown();
+        }
+
+        private void YoutubeUrlButton_Click(object sender, RoutedEventArgs e) {
+            DownloadProgressBar.Visibility = Visibility.Visible;
+            DownloadProgressBarText.Visibility = Visibility.Visible;
+            AudioDownloader AudioDL = new AudioDownloader(youtubeUrl, outputFolder);
+            AudioDL.ConsoleLog += AudioDL_ConsoleLog;
+            AudioDL.DownloadProgress += AudioDL_DownloadProgress;
+            Task t = Task.Run(() => AudioDL.StartDownload());
         }
 
         private void OutputFolderButton_Click(object sender, RoutedEventArgs e) {
@@ -72,13 +85,10 @@ namespace Youtube_DL_App {
             }
         }
 
-        private void YoutubeUrlButton_Click(object sender, RoutedEventArgs e) {
-            DownloadProgressBar.Visibility = Visibility.Visible;
-            DownloadProgressBarText.Visibility = Visibility.Visible;
-            AudioDownloader AudioDL = new AudioDownloader(youtubeUrl, outputFolder);
-            AudioDL.ConsoleLog += AudioDL_ConsoleLog;
-            AudioDL.DownloadProgress += AudioDL_DownloadProgress;
-            Task t = Task.Run(() => AudioDL.StartDownload());
+        private void OpenFolderButton_Click(object sender, RoutedEventArgs e) {
+            if (System.IO.Directory.Exists(outputFolder)) {
+                Process.Start("explorer.exe", outputFolder);
+            }
         }
 
         private void AudioDL_ConsoleLog(object sender, ConsoleLogEventArgs e) {
