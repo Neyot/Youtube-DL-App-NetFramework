@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
@@ -22,11 +24,13 @@ namespace Youtube_DL_App {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
-        public DownloadProgressBarValue DownloadProgressValue { get; set; }
+        public DownloadProgressBarValue DownloadProgressValue { get; private set; }
 
         private readonly ConsoleLogWindow consoleLogWindow = new ConsoleLogWindow();
         private string outputFolder;
         private string youtubeUrl;
+        private bool downloadInProgress;
+        private bool downloadFinishedTextVisible;
 
         public MainWindow(bool showConsoleLog) {
             InitializeComponent();
@@ -35,15 +39,16 @@ namespace Youtube_DL_App {
 
             outputFolder = Properties.Settings.Default["OutputFolder"].ToString();
             if (!System.IO.Path.IsPathRooted(outputFolder)) {
-                outputFolder = System.IO.Path.GetFullPath(System.IO.Directory.GetCurrentDirectory() + outputFolder);
+                if (outputFolder.StartsWith(".")) {
+                    outputFolder = System.IO.Path.GetFullPath(System.IO.Directory.GetCurrentDirectory() + outputFolder);
+                } else {
+                    outputFolder = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), outputFolder);
+                }
+                
             }
             OutputFolderTextBox.Text = outputFolder;
             youtubeUrl = Properties.Settings.Default["YoutubeUrl"].ToString();
             YoutubeUrlTextBox.Text = youtubeUrl;
-
-            Binding binding = new Binding("Data");
-            binding.Source = DownloadProgressValue;
-            DownloadProgressBar.SetBinding(ProgressBar.ValueProperty, binding);
         }
 
         public MainWindow() : this(false) { }
@@ -59,29 +64,50 @@ namespace Youtube_DL_App {
         }
 
         private void YoutubeUrlButton_Click(object sender, RoutedEventArgs e) {
-            DownloadProgressBar.Visibility = Visibility.Visible;
-            DownloadProgressBarText.Visibility = Visibility.Visible;
-            AudioDownloader AudioDL = new AudioDownloader(youtubeUrl, outputFolder);
-            AudioDL.ConsoleLog += AudioDL_ConsoleLog;
-            AudioDL.DownloadProgress += AudioDL_DownloadProgress;
-            Task t = Task.Run(() => AudioDL.StartDownload());
+            if (!downloadInProgress) {
+                if (!System.IO.Directory.Exists(outputFolder)) {
+                    MessageBoxResult result = MessageBox.Show("Output Folder does not exist. Create it?", "Youtube DL Wrapper", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+                    switch (result) {
+                        case MessageBoxResult.Yes:
+                            Directory.CreateDirectory(outputFolder);
+                            break;
+                        case MessageBoxResult.No:
+                            MessageBox.Show("Not creating folder and stopping download.", "Youtube DL Wrapper", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK);
+                            return;
+                    }
+                }
+                downloadFinishedTextVisible = false;
+                downloadInProgress = true;
+                this.Dispatcher.Invoke(() => {
+                    DownloadProgressBarText.Text = "Starting download...";
+                    DownloadProgressBar.Visibility = Visibility.Visible;
+                    DownloadProgressBarText.Visibility = Visibility.Visible;
+                });
+                AudioDownloader AudioDL = new AudioDownloader(youtubeUrl, outputFolder);
+                AudioDL.ConsoleLog += AudioDL_ConsoleLog;
+                AudioDL.DownloadProgress += AudioDL_DownloadProgress;
+                AudioDL.ConvertingProgress += AudioDL_ConvertingProgress;
+                Task t = Task.Run(() => AudioDL.StartDownload());
+            }
         }
 
         private void OutputFolderButton_Click(object sender, RoutedEventArgs e) {
-            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-            folderBrowserDialog.Description = "Select the directory that you want to output the downloaded file(s) to.";
-            folderBrowserDialog.ShowNewFolderButton = true;
-            if (System.IO.Directory.Exists(outputFolder)) {
-                folderBrowserDialog.SelectedPath = outputFolder;
-            } else {
-                folderBrowserDialog.SelectedPath = System.IO.Directory.GetCurrentDirectory();
-            }
-            DialogResult result = folderBrowserDialog.ShowDialog();
-            if (result == System.Windows.Forms.DialogResult.OK) {
-                outputFolder = folderBrowserDialog.SelectedPath;
-                OutputFolderTextBox.Text = outputFolder;
-                Properties.Settings.Default["OutputFolder"] = outputFolder;
-                Properties.Settings.Default.Save();
+            if (!downloadInProgress) {
+                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+                folderBrowserDialog.Description = "Select the directory that you want to output the downloaded file(s) to.";
+                folderBrowserDialog.ShowNewFolderButton = true;
+                if (System.IO.Directory.Exists(outputFolder)) {
+                    folderBrowserDialog.SelectedPath = outputFolder;
+                } else {
+                    folderBrowserDialog.SelectedPath = System.IO.Directory.GetCurrentDirectory();
+                }
+                DialogResult result = folderBrowserDialog.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK) {
+                    outputFolder = folderBrowserDialog.SelectedPath;
+                    OutputFolderTextBox.Text = outputFolder;
+                    Properties.Settings.Default["OutputFolder"] = outputFolder;
+                    Properties.Settings.Default.Save();
+                }
             }
         }
 
@@ -105,11 +131,36 @@ namespace Youtube_DL_App {
             });
         }
 
+        private void AudioDL_ConvertingProgress(object sender, ConvertingProgressEventArgs e) {
+            if (!e.Finished) {
+                this.Dispatcher.Invoke(() => {
+                    Storyboard sb = this.FindResource("ProgressBarLoadingStoryboard") as Storyboard;
+                    sb.Begin();
+                });
+            } else if (e.Finished) {
+                this.Dispatcher.Invoke(() => {
+                    Storyboard sb = this.FindResource("ProgressBarLoadingStoryboard") as Storyboard;
+                    sb.Stop();
+                    DownloadProgressBar.Visibility = Visibility.Hidden;
+                    DownloadProgressBar.Value = 0;
+                    DownloadProgressBarText.Text = "Download finished.";
+                    downloadInProgress = false;
+                    downloadFinishedTextVisible = true;
+                });
+            }
+        }
+
         private void YoutubeUrlTextBox_LostFocus(object sender, RoutedEventArgs e) {
             if (YoutubeUrlTextBox.Text != youtubeUrl) {
                 youtubeUrl = YoutubeUrlTextBox.Text;
                 Properties.Settings.Default["YoutubeUrl"] = youtubeUrl;
                 Properties.Settings.Default.Save();
+                if (downloadFinishedTextVisible) {
+                    downloadFinishedTextVisible = false;
+                    this.Dispatcher.Invoke(() => {
+                        DownloadProgressBarText.Visibility = Visibility.Hidden;
+                    });
+                }
             }
         }
 

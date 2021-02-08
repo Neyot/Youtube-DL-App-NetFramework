@@ -16,6 +16,14 @@
         <Style TargetType="{x:Type Button}">
             <Setter Property="Padding" Value="15,5"/>
         </Style>
+        <Storyboard x:Key="ProgressBarLoadingStoryboard" Duration="0:0:4" RepeatBehavior="Forever">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DownloadProgressBarText" Storyboard.TargetProperty="Text">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="Converting downloaded file to MP3" />
+                <DiscreteObjectKeyFrame KeyTime="0:0:1" Value="Converting downloaded file to MP3." />
+                <DiscreteObjectKeyFrame KeyTime="0:0:2" Value="Converting downloaded file to MP3.." />
+                <DiscreteObjectKeyFrame KeyTime="0:0:3" Value="Converting downloaded file to MP3..." />
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
     </Window.Resources>
     <Grid Margin="15">
         <Grid.ColumnDefinitions>

@@ -42,8 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioDownloader.cs" />
-    <Compile Include="ConsoleLogEventArgs.cs" />
-    <Compile Include="DownloadProgressEventArgs.cs" />
+    <Compile Include="CustomEventArgs\ConsoleLogEventArgs.cs" />
+    <Compile Include="CustomEventArgs\ConvertingProgressEventArgs.cs" />
+    <Compile Include="CustomEventArgs\DownloadProgressEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VideoDownloader.cs" />
   </ItemGroup>
