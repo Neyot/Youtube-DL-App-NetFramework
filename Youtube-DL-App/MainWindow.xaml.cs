@@ -1,18 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Diagnostics;
 using Youtube_DL_Wrapper;
@@ -24,9 +15,10 @@ namespace Youtube_DL_App {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
-        public DownloadProgressBarValue DownloadProgressValue { get; private set; }
 
         private readonly ConsoleLogWindow consoleLogWindow = new ConsoleLogWindow();
+        private readonly Task verifyBinaryPathTask;
+        private string binaryPath;
         private string outputFolder;
         private string youtubeUrl;
         private bool downloadInProgress;
@@ -34,21 +26,24 @@ namespace Youtube_DL_App {
 
         public MainWindow(bool showConsoleLog) {
             InitializeComponent();
+            DataContext = this;
             if (showConsoleLog)
                 consoleLogWindow.Show();
 
             outputFolder = Properties.Settings.Default["OutputFolder"].ToString();
-            if (!System.IO.Path.IsPathRooted(outputFolder)) {
+            if (!Path.IsPathRooted(outputFolder)) {
                 if (outputFolder.StartsWith(".")) {
-                    outputFolder = System.IO.Path.GetFullPath(System.IO.Directory.GetCurrentDirectory() + outputFolder);
+                    outputFolder = Path.GetFullPath(Directory.GetCurrentDirectory() + outputFolder);
                 } else {
-                    outputFolder = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), outputFolder);
+                    outputFolder = Path.Combine(Directory.GetCurrentDirectory(), outputFolder);
                 }
                 
             }
             OutputFolderTextBox.Text = outputFolder;
             youtubeUrl = Properties.Settings.Default["YoutubeUrl"].ToString();
             YoutubeUrlTextBox.Text = youtubeUrl;
+
+            verifyBinaryPathTask = Task.Run(() => VerifyBinaryPath());
         }
 
         public MainWindow() : this(false) { }
@@ -65,17 +60,39 @@ namespace Youtube_DL_App {
 
         private void YoutubeUrlButton_Click(object sender, RoutedEventArgs e) {
             if (!downloadInProgress) {
-                if (!System.IO.Directory.Exists(outputFolder)) {
-                    MessageBoxResult result = MessageBox.Show("Output Folder does not exist. Create it?", "Youtube DL Wrapper", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+                verifyBinaryPathTask?.Wait();
+
+                if (!this.IsBinaryPathValid) {
+                    MessageBox.Show($"ERROR: Cannot find file: \n\"{binaryPath}\". \n\nWill not be able to download until a valid .exe is found.", $"{this.Title}", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK);
+                    return;
+                }
+
+                foreach (var prerequisite in new string[] { "ffmpeg.exe", "ffplay.exe", "ffprobe.exe" }) {
+                    if (!File.Exists(Path.Combine(Path.GetDirectoryName(binaryPath), prerequisite))) {
+                        MessageBoxResult result = MessageBox.Show($"WARNING: Cannot find youtube-dl.exe prequisite \"{prerequisite}\" in folder: \n\"{Path.GetDirectoryName(binaryPath)}\". \n\nDownloading may not work as intended. Please see <Youtube-DL-App GitHub installation instructions> for instructions on how to download these prequisites. \n\nContinue with download?", $"{this.Title}", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+                        switch (result) {
+                            case MessageBoxResult.Yes:
+                                continue;
+                            case MessageBoxResult.No:
+                            case MessageBoxResult.Cancel:
+                                MessageBox.Show("Cancelling download.", $"{this.Title}", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK);
+                                return;
+                        }
+                    }
+                }
+
+                if (!Directory.Exists(outputFolder)) {
+                    MessageBoxResult result = MessageBox.Show("Output Folder does not exist. Create it?", $"{this.Title}", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
                     switch (result) {
                         case MessageBoxResult.Yes:
                             Directory.CreateDirectory(outputFolder);
                             break;
                         case MessageBoxResult.No:
-                            MessageBox.Show("Not creating folder and stopping download.", "Youtube DL Wrapper", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK);
+                            MessageBox.Show("Not creating folder and stopping download.", $"{this.Title}", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK);
                             return;
                     }
                 }
+
                 downloadFinishedTextVisible = false;
                 downloadInProgress = true;
                 this.Dispatcher.Invoke(() => {
@@ -83,7 +100,7 @@ namespace Youtube_DL_App {
                     DownloadProgressBar.Visibility = Visibility.Visible;
                     DownloadProgressBarText.Visibility = Visibility.Visible;
                 });
-                AudioDownloader AudioDL = new AudioDownloader(youtubeUrl, outputFolder);
+                AudioDownloader AudioDL = new AudioDownloader(youtubeUrl, binaryPath, outputFolder);
                 AudioDL.ConsoleLog += AudioDL_ConsoleLog;
                 AudioDL.DownloadProgress += AudioDL_DownloadProgress;
                 AudioDL.ConvertingProgress += AudioDL_ConvertingProgress;
@@ -92,14 +109,16 @@ namespace Youtube_DL_App {
         }
 
         private void OutputFolderButton_Click(object sender, RoutedEventArgs e) {
+            ConsoleLog($"outputFolder: {outputFolder}");
             if (!downloadInProgress) {
-                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-                folderBrowserDialog.Description = "Select the directory that you want to output the downloaded file(s) to.";
-                folderBrowserDialog.ShowNewFolderButton = true;
-                if (System.IO.Directory.Exists(outputFolder)) {
+                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog {
+                    Description = "Select the directory that you want to output the downloaded file(s) to.",
+                    ShowNewFolderButton = true
+                };
+                if (Directory.Exists(outputFolder)) {
                     folderBrowserDialog.SelectedPath = outputFolder;
                 } else {
-                    folderBrowserDialog.SelectedPath = System.IO.Directory.GetCurrentDirectory();
+                    folderBrowserDialog.SelectedPath = Directory.GetCurrentDirectory();
                 }
                 DialogResult result = folderBrowserDialog.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK) {
@@ -112,16 +131,40 @@ namespace Youtube_DL_App {
         }
 
         private void OpenFolderButton_Click(object sender, RoutedEventArgs e) {
-            if (System.IO.Directory.Exists(outputFolder)) {
+            if (Directory.Exists(outputFolder)) {
                 Process.Start("explorer.exe", outputFolder);
             }
         }
 
+        private void ChooseBinaryFolderButton_Click(object sender, RoutedEventArgs e) {
+            ConsoleLog($"binaryPath: {binaryPath}");
+            if (!downloadInProgress) {
+                string binaryDirectory;
+                if (Path.GetExtension(binaryPath) == ".exe")
+                    binaryDirectory = Path.GetDirectoryName(binaryPath);
+                else
+                    binaryDirectory = binaryPath;
+                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog {
+                    Description = "Select the directory that contains the 4 youtube-dl and ffmpeg exe's.",
+                    ShowNewFolderButton = false,
+                    SelectedPath = binaryDirectory
+                };
+                DialogResult result = folderBrowserDialog.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK) {
+                    var combinedPath = Path.Combine(folderBrowserDialog.SelectedPath, "youtube-dl.exe");
+                    binaryPath = combinedPath;
+                    if (File.Exists(combinedPath)) {
+                        Properties.Settings.Default["BinaryPath"] = binaryPath;
+                        Properties.Settings.Default.Save();
+                    } else {
+                        MessageBox.Show($"ERROR: Cannot find file \"youtube-dl.exe\" in folder: \"{folderBrowserDialog.SelectedPath}\". \n\nWill not be able to download until a valid .exe is found.", $"{this.Title}", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK);
+                    }
+                }
+            }
+        }
+
         private void AudioDL_ConsoleLog(object sender, ConsoleLogEventArgs e) {
-            consoleLogWindow.Dispatcher.Invoke(() => {
-                consoleLogWindow.ConsoleLog.AppendText(e.LatestLine + Environment.NewLine);
-                consoleLogWindow.ConsoleLog.ScrollToEnd();
-            });
+            ConsoleLog(e.Data);
         }
 
         private void AudioDL_DownloadProgress(object sender, DownloadProgressEventArgs e) {
@@ -171,25 +214,67 @@ namespace Youtube_DL_App {
                 Properties.Settings.Default.Save();
             }
         }
-    }
 
-    public class DownloadProgressBarValue : INotifyPropertyChanged {
-        private double data;
-        
-        public double Data {
-            get => data;
-            set {
-                if (value != data) {
-                    data = value;
-                    NotifyPropertyChanged("Data");
+        private bool IsBinaryPathValid => Path.GetFileName(binaryPath) == "youtube-dl.exe" && File.Exists(binaryPath);
+
+        private void VerifyBinaryPath() {
+            string binaryPathSetting = Properties.Settings.Default["BinaryPath"].ToString();
+
+            if (File.Exists(binaryPathSetting)) {
+                binaryPath = Path.GetFullPath(binaryPathSetting);
+                Properties.Settings.Default["BinaryPath"] = binaryPath;
+                Properties.Settings.Default.Save();
+                return;
+            }
+
+            string binary = "youtube-dl.exe";
+
+            if (File.Exists(binary)) {
+                binaryPath = Path.GetFullPath(binary);
+                Properties.Settings.Default["BinaryPath"] = binaryPath;
+                Properties.Settings.Default.Save();
+                return;
+            }
+
+            var values = Environment.GetEnvironmentVariable("PATH");
+            foreach (var path in values.Split(Path.PathSeparator)) {
+                var fullPath = Path.Combine(path, binary);
+                if (File.Exists(fullPath)) {
+                    binaryPath = fullPath;
+                    Properties.Settings.Default["BinaryPath"] = binaryPath;
+                    Properties.Settings.Default.Save();
+                    return;
                 }
             }
+
+            var folders = Directory.GetDirectories(Directory.GetCurrentDirectory(), "*", SearchOption.TopDirectoryOnly);
+            foreach (var path in folders) {
+                var fullPath = Path.Combine(path, binary);
+                if (File.Exists(fullPath)) {
+                    binaryPath = fullPath;
+                    Properties.Settings.Default["BinaryPath"] = binaryPath;
+                    Properties.Settings.Default.Save();
+                    return;
+                }
+            }
+
+            this.Dispatcher.Invoke(() => {
+                MessageBox.Show($"ERROR: Cannot locate a \"youtube-dl.exe\" executable in current directory or PATH. \n\nClick the button \"{ChooseBinaryFolderButton.Content}\" to choose a folder containing the executable.", $"{this.Title}", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK);
+            });
         }
 
-        protected void NotifyPropertyChanged(string propertyName) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        public void ConsoleLog(string text) {
+            consoleLogWindow.Dispatcher.Invoke(() => {
+                consoleLogWindow.ConsoleLogTextBox.AppendText(text + Environment.NewLine);
+                consoleLogWindow.ConsoleLogTextBox.ScrollToEnd();
+            });
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null) {
+            PropertyChangedEventHandler handler = this.PropertyChanged;
+            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

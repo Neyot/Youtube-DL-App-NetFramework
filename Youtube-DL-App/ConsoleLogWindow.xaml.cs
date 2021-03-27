@@ -20,5 +20,9 @@ namespace Youtube_DL_App {
         public ConsoleLogWindow() {
             InitializeComponent();
         }
+
+        private void JumpToBottomButton_Click(object sender, RoutedEventArgs e) {
+            this.ConsoleLogTextBox.ScrollToEnd();
+        }
     }
 }

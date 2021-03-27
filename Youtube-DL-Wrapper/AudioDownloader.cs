@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -20,15 +17,17 @@ namespace Youtube_DL_Wrapper {
         private readonly string fileExtension;
         private bool convertingInProgress;
 
-        public AudioDownloader(string url, string outputFolder, string outputName) {
-            string binaryFolder = System.IO.Path.GetFullPath(System.IO.Directory.GetCurrentDirectory() + "/Binaries");
-            string destinationPath = System.IO.Path.Combine(outputFolder, outputName);
+        public AudioDownloader(string url, string binaryPath, string outputFolder, string outputName) {
+            if (binaryPath == null || binaryPath == string.Empty || Path.GetFileName(binaryPath) != "youtube-dl.exe" || !File.Exists(binaryPath))
+                throw new ArgumentException($"String passed to binaryPath: <{binaryPath}> not a valid youtube-dl.exe binary.");
+
+            string destinationPath = Path.Combine(outputFolder, outputName);
             fileExtension = "mp3";
 
             string arguments = $"--continue  --no-overwrites --restrict-filenames --extract-audio --audio-format {fileExtension} {url} -o \"{destinationPath}\"";
 
             process = new Process();
-            process.StartInfo.FileName = System.IO.Path.Combine(binaryFolder, "youtube-dl.exe");
+            process.StartInfo.FileName = binaryPath;
             process.StartInfo.Arguments = arguments;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardOutput = true;
@@ -37,7 +36,7 @@ namespace Youtube_DL_Wrapper {
             process.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
         }
 
-        public AudioDownloader(string url, string outputFolder) : this(url, outputFolder, "%(title)s.%(ext)s") { }
+        public AudioDownloader(string url, string binaryPath, string outputFolder) : this(url, binaryPath, outputFolder, "%(title)s.%(ext)s") { }
 
         public void StartDownload() {
             process.Start();

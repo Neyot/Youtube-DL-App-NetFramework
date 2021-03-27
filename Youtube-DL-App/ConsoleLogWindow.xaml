@@ -5,8 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Youtube_DL_App"
         mc:Ignorable="d"
-        Title="ConsoleLogWindow" Height="373.048" Width="825.929">
+        Title="Console Log Window" Height="373.048" Width="825.929">
+    <Window.Resources>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Padding" Value="15,5"/>
+        </Style>
+    </Window.Resources>
     <Grid>
-        <TextBox Name="ConsoleLog" IsReadOnly="True" IsReadOnlyCaretVisible="True" Margin="10" />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBox Grid.Row="0" Grid.ColumnSpan="2" x:Name="ConsoleLogTextBox" IsReadOnly="True" IsReadOnlyCaretVisible="True" Margin="10" />
+
+        <Button Grid.Row="1" Grid.Column="2" x:Name="JumpToBottomButton" Margin="10,0,10,10" Content="Jump to Bottom" Click="JumpToBottomButton_Click" />
     </Grid>
 </Window>

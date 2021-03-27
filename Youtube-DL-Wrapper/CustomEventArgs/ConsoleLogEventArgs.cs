@@ -2,10 +2,10 @@
 
 namespace Youtube_DL_Wrapper {
     public class ConsoleLogEventArgs : EventArgs {
-        public string LatestLine { get; private set; }
+        public string Data { get; private set; }
 
-        public ConsoleLogEventArgs(string latestLineIn) {
-            LatestLine = latestLineIn;
+        public ConsoleLogEventArgs(string data) {
+            Data = data;
         }
     }
 }

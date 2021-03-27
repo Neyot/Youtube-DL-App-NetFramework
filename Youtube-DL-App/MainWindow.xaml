@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Youtube_DL_App"
         mc:Ignorable="d"
-        Title="Youtube-DL Easy Wrapper" 
-        Height="185" Width="900" MinHeight="185" MinWidth="900" MaxHeight="185"
+        Title="Youtube-DL Easy Wrapper"
+        Height="185" Width="900" MinHeight="185" MinWidth="900"
         Background="{DynamicResource WindowBackgroundBrush}">
     <Window.Resources>
         <LinearGradientBrush x:Key="WindowBackgroundBrush">
@@ -18,10 +18,10 @@
         </Style>
         <Storyboard x:Key="ProgressBarLoadingStoryboard" Duration="0:0:4" RepeatBehavior="Forever">
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DownloadProgressBarText" Storyboard.TargetProperty="Text">
-                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="Converting downloaded file to MP3" />
-                <DiscreteObjectKeyFrame KeyTime="0:0:1" Value="Converting downloaded file to MP3." />
-                <DiscreteObjectKeyFrame KeyTime="0:0:2" Value="Converting downloaded file to MP3.." />
-                <DiscreteObjectKeyFrame KeyTime="0:0:3" Value="Converting downloaded file to MP3..." />
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="Converting downloaded file to MP3. This could take up to a few minutes" />
+                <DiscreteObjectKeyFrame KeyTime="0:0:1" Value="Converting downloaded file to MP3. This could take up to a few minutes." />
+                <DiscreteObjectKeyFrame KeyTime="0:0:2" Value="Converting downloaded file to MP3. This could take up to a few minutes.." />
+                <DiscreteObjectKeyFrame KeyTime="0:0:3" Value="Converting downloaded file to MP3. This could take up to a few minutes..." />
             </ObjectAnimationUsingKeyFrames>
         </Storyboard>
     </Window.Resources>
@@ -39,16 +39,17 @@
         </Grid.RowDefinitions>
 
         <Label x:Name="YoutubeUrlLabel" Content="_Youtube URL to MP3:" Target="{Binding ElementName=YoutubeUrlTextBox}"/>
-        <TextBox Grid.Column="1" x:Name="YoutubeUrlTextBox" Margin="5,0,5,15" TabIndex="1" Text="" LostFocus="YoutubeUrlTextBox_LostFocus"/>
+        <TextBox Grid.Column="1" x:Name="YoutubeUrlTextBox" Margin="5,0,5,15" TabIndex="1" Text=""  LostFocus="YoutubeUrlTextBox_LostFocus"/>
         <Button Grid.Column="2" x:Name="YoutubeUrlButton" Margin="5,0,5,15" Content="Download" Click="YoutubeUrlButton_Click"/>
+        <Button Grid.Column="3" x:Name="ChooseBinaryFolderButton" Margin="5,0,5,15" Content="Binary Folder..." Click="ChooseBinaryFolderButton_Click"/>
 
         <Label Grid.Row="1" x:Name="OutputFolderLabel" Content="_Output Folder:" Target="{Binding ElementName=OutputFolderTextBox}"/>
         <TextBox Grid.Row="1" Grid.Column="1" x:Name="OutputFolderTextBox" Margin="5,0,5,15" TabIndex="2" Text="" LostFocus="OutputFolderTextBox_LostFocus"/>
         <Button Grid.Row="1" Grid.Column="2" x:Name="OutputFolderButton" Margin="5,0,5,15" Content="Browse..." Click="OutputFolderButton_Click"/>
         <Button Grid.Row="1" Grid.Column="3" x:Name="OpenFolderButton" Margin="5,0,5,15" Content="Open Folder" Click="OpenFolderButton_Click"/>
 
-        <ProgressBar Grid.Row="2" Grid.ColumnSpan="4" x:Name="DownloadProgressBar" Minimum="0" Maximum="100" VerticalAlignment="Bottom" Height="20" Visibility="Hidden"/>
-        <TextBlock Grid.Row="2" Grid.ColumnSpan="4" x:Name="DownloadProgressBarText" HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="" Height="18" Visibility="Hidden"/>
+        <ProgressBar Grid.Row="2" Grid.ColumnSpan="4" x:Name="DownloadProgressBar" Minimum="0" Maximum="100" VerticalAlignment="Top" Height="20" Visibility="Hidden"/>
+        <TextBlock Grid.Row="2" Grid.ColumnSpan="4" x:Name="DownloadProgressBarText" HorizontalAlignment="Center" VerticalAlignment="Top" Text="" Height="18" Visibility="Hidden"/>
 
     </Grid>
 </Window>
