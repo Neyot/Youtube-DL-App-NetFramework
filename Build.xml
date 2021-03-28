@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ReleaseFolder>.\Release</ReleaseFolder>
+    <ReleaseWithBinariesOutput>\WithBinaries</ReleaseWithBinariesOutput>
+    <ReleaseNoBinariesOutput>\NoBinaries</ReleaseNoBinariesOutput>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <VersionNumber>0.0.0.0</VersionNumber>
+  </PropertyGroup>
+  <Target Name="Clean">
+    <Message Text="Cleaning Youtube-DL-App $(Configuration)" />
+    <MSBuild Projects="Youtube-DL-App\Youtube-DL-App.csproj" Targets="Clean"/>
+  </Target>
+  <Target Name="Build" DependsOnTargets="Clean">
+    <Message Text="Buiding Youtube-DL-App $(Configuration)" />
+    <MSBuild Projects="Youtube-DL-App\Youtube-DL-App.csproj" Targets="Build"/>
+  </Target>
+  <Target Name="CleanReleaseFolders" DependsOnTargets="Build;Clean" Condition="$(Configuration) == 'Release'">
+    <RemoveDir Directories="$(ReleaseFolder)" />
+  </Target>
+  <Target Name="BuildForVersionCheck" DependsOnTargets="CleanReleaseFolders;Build;Clean">
+    <ItemGroup>
+      <ReleaseFiles Include="Youtube-DL-App\bin\$(Configuration)\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ReleaseFiles)" DestinationFolder="$(ReleaseFolder)\$(ReleaseNoBinariesOutput)" />
+  </Target>
+  <Target Name="ReleaseNoBinaries" DependsOnTargets="CleanReleaseFolders;Build;Clean" Condition="$(Configuration) == 'Release'">
+    <ItemGroup>
+      <ReleaseFiles Include="Youtube-DL-App\bin\$(Configuration)\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ReleaseFiles)" DestinationFolder="$(ReleaseFolder)\$(ReleaseNoBinariesOutput)" />
+    <ZipDirectory SourceDirectory="$(ReleaseFolder)\$(ReleaseNoBinariesOutput)" DestinationFile="$(ReleaseFolder)\Youtube-DL-App_v$(VersionNumber)_NoBinaries.zip" />
+  </Target>
+  <Target Name="ReleaseWithBinaries" DependsOnTargets="CleanReleaseFolders;Build;Clean" Condition="$(Configuration) == 'Release'">
+    <ItemGroup>
+      <ReleaseFiles Include="Youtube-DL-App\bin\$(Configuration)\*.*" />
+      <BinaryFiles Include=".\Binaries\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ReleaseFiles)" DestinationFolder="$(ReleaseFolder)\$(ReleaseNoBinariesOutput)" />
+    <Copy SourceFiles="@(ReleaseFiles)" DestinationFolder="$(ReleaseFolder)\$(ReleaseWithBinariesOutput)" />
+    <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(ReleaseFolder)\$(ReleaseWithBinariesOutput)" />
+    <ZipDirectory SourceDirectory="$(ReleaseFolder)\$(ReleaseNoBinariesOutput)" DestinationFile="$(ReleaseFolder)\Youtube-DL-App_v$(VersionNumber)_NoBinaries.zip" />
+    <ZipDirectory SourceDirectory="$(ReleaseFolder)\$(ReleaseWithBinariesOutput)" DestinationFile="$(ReleaseFolder)\Youtube-DL-App_v$(VersionNumber)_WithBinaries.zip" />
+  </Target>
+</Project>
