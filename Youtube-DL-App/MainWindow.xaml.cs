@@ -28,9 +28,11 @@ namespace Youtube_DL_App {
         public MainWindow(bool showConsoleLog) {
             InitializeComponent();
             Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            DateTime buildDate = new DateTime(2000, 1, 1).AddDays(version.Build).AddSeconds(version.Revision * 2);
-            ConsoleLog($"Version: {version} ({buildDate})");
-            Log.Debug($"Version: {version} ({buildDate})");
+            //DateTime buildDate = new DateTime(2000, 1, 1).AddDays(version.Build).AddSeconds(version.Revision * 2);
+            //ConsoleLog($"Version: {version} ({buildDate})");
+            //Log.Debug($"Version: {version} ({buildDate})");
+            ConsoleLog($"Version: {version}");
+            Log.Debug($"Version: {version}");
             if (showConsoleLog)
                 consoleLogWindow.Show();
 
