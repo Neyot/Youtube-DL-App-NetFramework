@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.ComponentModel;
 using System.Diagnostics;
+using Serilog;
 using Youtube_DL_Wrapper;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 using DialogResult = System.Windows.Forms.DialogResult;
@@ -26,7 +27,10 @@ namespace Youtube_DL_App {
 
         public MainWindow(bool showConsoleLog) {
             InitializeComponent();
-            DataContext = this;
+            Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            DateTime buildDate = new DateTime(2000, 1, 1).AddDays(version.Build).AddSeconds(version.Revision * 2);
+            ConsoleLog($"Version: {version} ({buildDate})");
+            Log.Debug($"Version: {version} ({buildDate})");
             if (showConsoleLog)
                 consoleLogWindow.Show();
 
@@ -110,6 +114,7 @@ namespace Youtube_DL_App {
 
         private void OutputFolderButton_Click(object sender, RoutedEventArgs e) {
             ConsoleLog($"outputFolder: {outputFolder}");
+            Log.Debug($"outputFolder: {outputFolder}");
             if (!downloadInProgress) {
                 FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog {
                     Description = "Select the directory that you want to output the downloaded file(s) to.",
@@ -138,6 +143,7 @@ namespace Youtube_DL_App {
 
         private void ChooseBinaryFolderButton_Click(object sender, RoutedEventArgs e) {
             ConsoleLog($"binaryPath: {binaryPath}");
+            Log.Debug($"binaryPath: {binaryPath}");
             if (!downloadInProgress) {
                 string binaryDirectory;
                 if (Path.GetExtension(binaryPath) == ".exe")
@@ -165,6 +171,7 @@ namespace Youtube_DL_App {
 
         private void AudioDL_ConsoleLog(object sender, ConsoleLogEventArgs e) {
             ConsoleLog(e.Data);
+            Log.Debug(e.Data);
         }
 
         private void AudioDL_DownloadProgress(object sender, DownloadProgressEventArgs e) {
