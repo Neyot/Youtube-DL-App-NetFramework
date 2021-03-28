@@ -40,6 +40,7 @@ if (Test-Path variable:OverrideVersion) {
 	}
 
 	$NewVersion = '{0}.{1}.{2}.{3}' -f $MajorVersion, $MinorVersion, $BuildVersion, $RevisionVersion
+	$BuildVersion = '{0}.{1}.{2}' -f $MajorVersion, $MinorVersion, $BuildVersion
 }
 
 $NewVersion.Split('.') | Out-File ($localPath + "version.txt")
@@ -56,9 +57,9 @@ foreach ($file in $AssemblyFiles) {
 }
 
 if (Test-Path -Path "Binaries\") {
-    msbuild Build.xml /p:Configuration=Release /p:VersionNumber=$NewVersion /t:ReleaseWithBinaries
+    msbuild Build.xml /p:Configuration=Release /p:VersionNumber=$BuildVersion /t:ReleaseWithBinaries
 } else {
-    msbuild Build.xml /p:Configuration=Release /p:VersionNumber=$NewVersion /t:ReleaseNoBinaries
+    msbuild Build.xml /p:Configuration=Release /p:VersionNumber=$BuildVersion /t:ReleaseNoBinaries
 }
 
-"`r`nBuilt new release with version {0}.`r`n" -f $NewVersion
+"`r`nBuilt new release with build version {0} (Full Version: {1}).`r`n" -f $BuildVersion, $NewVersion
